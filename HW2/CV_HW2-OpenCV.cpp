@@ -25,29 +25,28 @@ int main()
 		return -1;
 	}
 	cv::threshold(src_img, img_bool, 128, 255, cv::THRESH_OTSU);
-	//連通區域計算
 	int nccomps = cv::connectedComponentsWithStats(
-		img_bool, //輸入二值化圖
-		labels,     //輸出的label影像
-		stats, // 可GETconnectedComponents之相關資訊
-		centroids // 重心
+		img_bool,
+		labels,     
+		stats, 
+		centroids
 	);
 
-	//1000>才著色
+	//Coloring if the area>1000
 	vector<cv::Vec3b> colors(nccomps);
-	colors[0] = cv::Vec3b(0, 0, 0); // 背景設為黑色
+	colors[0] = cv::Vec3b(0, 0, 0); 
 	for (int i = 1; i < nccomps; i++) {
 		colors[i] = cv::Vec3b(rand() % 256, rand() % 256, rand() % 256);
 	}
 
-	//照label值進行著色
+	//Coloring by label
 	img_color = cv::Mat::zeros(src_img.size(), CV_8UC3);
 	for (int y = 0; y < img_color.rows; y++)
 	{
 		for (int x = 0; x < img_color.cols; x++)
 		{
 			int label = labels.at<int>(y, x);
-			CV_Assert(0 <= label && label <= nccomps); //類似if判斷，如為false傳送錯誤訊息
+			CV_Assert(0 <= label && label <= nccomps); 
 			img_color.at<cv::Vec3b>(y, x) = colors[label];
 		}
 	}
@@ -64,8 +63,8 @@ int main()
 			cv::rectangle(img_color, cv::Rect(x, y, width, height), cv::Scalar(0, 0, 255), 2);
 		}
 	}
-
-	for (int i = 1; i < nccomps; ++i) {					//畫重心
+	// drawing the center of gravity
+	for (int i = 1; i < nccomps; ++i) {
 		if (stats.at<int>(i, cv::CC_STAT_AREA) > 1000) {
 			double *param = centroids.ptr<double>(i);
 			int x = static_cast<int>(param[0]);
