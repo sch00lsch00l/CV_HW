@@ -51,7 +51,7 @@ int main()
 		}
 	}
 	
-	for (int i = 1; i < nccomps; ++i) {                   //畫框
+	for (int i = 1; i < nccomps; ++i) {                   //bounding box
 		if (stats.at<int>(i, cv::CC_STAT_AREA) > 1000) {
 			int *param = stats.ptr<int>(i);
 
