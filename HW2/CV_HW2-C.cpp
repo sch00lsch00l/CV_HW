@@ -11,12 +11,12 @@
 #define NEW2D(H, W, TYPE) (TYPE **)new2d(H, W, sizeof(TYPE))
 
 Bitmap_File_Header BMP_head;
-Palette_RGB RGB_color[256];//256調色盤
+Palette_RGB RGB_color[256];
 Bitmap_File_HeaderInfo BMP_info;
 
 using namespace std;
 
-int label[13500] = { 0 };  //記錄label對應關係的容量
+int label[13500] = { 0 };
 
 void show_bmp_header(Bitmap_File_Header BFH) {
 	cout << "\n標頭檔資訊:" << endl;
@@ -57,7 +57,7 @@ void* new2d(int h, int w, int size)
 	return p;
 }
 
-bool determine_0_255(int &value)//判斷等於0或255
+bool determine_0_255(int &value)//decide the value
 {
 	if (value == 255 || value == 0)
 	{
@@ -69,14 +69,14 @@ bool determine_0_255(int &value)//判斷等於0或255
 	}
 }
 
-void setvalue(int &value, int &minimun)//設置配對值
+void setvalue(int &value, int &minimun)
 {
 	if (value != 0)
 	{
 		if (label[value] > minimun && label[value] != 255)
 		{
 			int buff_med_val = label[value];
-			while (true)//將mapping表調整
+			while (true)// adjustment the mapping table
 			{
 				if (label[buff_med_val] > minimun)
 				{
@@ -95,7 +95,7 @@ void setvalue(int &value, int &minimun)//設置配對值
 	}
 }
 
-void compare_min(int &value, int &minimun)//比小
+void compare_min(int &value, int &minimun)
 {
 	if (value != 0 && value != 255)
 	{
@@ -106,7 +106,7 @@ void compare_min(int &value, int &minimun)//比小
 	}
 }
 
-void compare_max(int &value, int &bigmun)//比小
+void compare_max(int &value, int &bigmun)
 {
 	if (value != 0 && value != 255)
 	{
@@ -117,26 +117,14 @@ void compare_max(int &value, int &bigmun)//比小
 	}
 }
 
-//void draw_line(int &x0, int &y0, int &x1, int &y1)//畫線
-//{
-//
-//	for (int i=x0; i <x1; i++)
-//	{
-//	
-//	}
-//}
-
-
-
 int main() {
 	char open_file[30];
 	char write_file[30];
-	Image_data *image_ori;//存原圖
-	Image_data *image_change;//存更改後的圖
-	//Image_data **image_change_med;//存更改後的圖
-	int **image_change_med;//存更改後的圖
-	int **image_change_med2;//存更改後的圖
-	Image_data *image_change2;//存更改後的圖
+	Image_data *image_ori;
+	Image_data *image_change;
+	int **image_change_med;
+	int **image_change_med2;
+	Image_data *image_change2;
 	int width, height;
 	int red, green, blue;
 	int i, j;
@@ -147,8 +135,6 @@ int main() {
 	int label_num = 50;
 	long time = clock();
 	int value;
-
-
 
 	cout << "請輸入檔案名稱(要打副檔名)：" << endl;
 	cin >> open_file;
@@ -164,14 +150,14 @@ int main() {
 	fread(&bfType, 1, sizeof(WORD), input_file);
 
 
-	fread(&BMP_head, 1, sizeof(Bitmap_File_Header), input_file);  //讀檔案標頭
+	fread(&BMP_head, 1, sizeof(Bitmap_File_Header), input_file); 
 	//show_bmp_header(BMP_head);
 	fread(&BMP_info, 1, sizeof(Bitmap_File_HeaderInfo), input_file);
 	//show_bmp_headerinfo(BMP_info); 
 
-	width = BMP_info.biHeight; //將長寬資訊對調
+	width = BMP_info.biHeight; //Swap the hight and width
 	height = BMP_info.biWidth;
-	image_ori = (Image_data*)malloc(width * height * sizeof(Image_data));  //設動態配置
+	image_ori = (Image_data*)malloc(width * height * sizeof(Image_data));  //adaptive 
 	image_change = (Image_data*)malloc(width * height * sizeof(Image_data));
 	image_change2 = (Image_data*)malloc((width + side * 2) * (height + side * 2) * sizeof(Image_data));
 	image_change_med = NEW2D(height, width, int);
@@ -179,63 +165,42 @@ int main() {
 
 	fread(image_ori, sizeof(struct Image_data) * width, height, input_file);
 
-
-	//for (unsigned int i = 0; i < BMP_info.biClrUsed; i++)  //讀RGB 調色盤
-	//{
-	//	fread((char *)&RGB_color[i].rgbBlue, 1, sizeof(BYTE), input_file);
-	//	fread((char *)&RGB_color[i].rgbGreen, 1, sizeof(BYTE), input_file);
-	//	fread((char *)&RGB_color[i].rgbRed, 1, sizeof(BYTE), input_file);
-	//}
-
-	//for (int i = 0; i < height; ++i)  //將像素寫入image_ori
-	//{
-	//	for (int j = 0; j < width; ++j)
-	//	{
-	//		(*(image_ori + i * width + j)).blue = 0;
-	//		(*(image_ori + i * width + j)).green = 0;
-	//		(*(image_ori + i * width + j)).red = 0;
-	//	}
-	//}
-
 	int sum;
-	for (i = 0; i < width*height; ++i) {   ///轉灰階
+	for (i = 0; i < width*height; ++i) {   //gray scal
 		sum = (*(image_ori + i)).blue + (*(image_ori + i)).green + (*(image_ori + i)).red;
 		(*(image_ori + i)).blue = (*(image_ori + i)).green = (*(image_ori + i)).red = sum / 3;
 	}
 
-	for (i = 0; i < width*height; ++i) {  //2值化
+	for (i = 0; i < width*height; ++i) {  //binarization
 		if ((*(image_ori + i)).blue > 128)
 			(*(image_ori + i)).blue = (*(image_ori + i)).green = (*(image_ori + i)).red = 255;
 		else
 			(*(image_ori + i)).blue = (*(image_ori + i)).green = (*(image_ori + i)).red = 0;
 	}
 
-	for (i = 0; i < height; ++i)  //丟進存圖
+	for (i = 0; i < height; ++i)
 	{
 		for (j = 0; j < width; ++j)
 		{
-
 			*(image_change + i * width + j) = *(image_ori + i * height + j);
 		}
 	}
 
-	for (i = 0; i < height; i++)   //一為丟二為
+	for (i = 0; i < height; i++) 
 	{
 		for (j = 0; j < width; j++)
 		{
 			int buff;
 			buff = (*(image_change + i * width + j)).blue;
 			//printf("buff：%d\n", buff);
-			//image_change_med[i][j]=
-			image_change_med[i][j] = buff;  /////原圖
+			image_change_med[i][j] = buff;  //original
 			//printf("i：%d , j：%d , 像素值：%d , buff值：%d",i,j, in_Image[i][j], *(image_change + i * width + j));
 
 		}
 	}
 
-	///////////////////////////////////////////////////////////////////////////////////////////////拓寬開始(複製外圈)
-
-	for (i = side; i < height + side; i++)   //拓寬圖 OK
+	//Widen
+	for (i = side; i < height + side; i++) 
 	{
 		for (j = side; j < width + side; j++)
 		{
@@ -243,7 +208,7 @@ int main() {
 		}
 	}
 
-	for (i = 0; i < side; i++)   //拓寬圖-左邊 左上OK 
+	for (i = 0; i < side; i++)   //Widen- Upper left
 	{
 		for (j = 0; j < side; j++)
 		{
@@ -251,7 +216,7 @@ int main() {
 		}
 	}
 
-	for (i = height; i < (height + 2 * side); i++)   //拓寬圖-左邊 左下
+	for (i = height; i < (height + 2 * side); i++)  //Widen- Lower left
 	{
 		for (j = 0; j < side; j++)
 		{
@@ -259,7 +224,7 @@ int main() {
 		}
 	}
 
-	for (i = side; i < (height + side); i++)   //拓寬圖-左邊 OK 
+	for (i = side; i < (height + side); i++)   //Widen - left
 	{
 		for (j = 0; j < side; j++)
 		{
@@ -267,7 +232,7 @@ int main() {
 		}
 	}
 
-	for (i = 0; i < side; i++)   //拓寬圖-上邊 OK 
+	for (i = 0; i < side; i++)   //Widen - top
 	{
 		for (j = side; j < (width + side); j++)
 		{
@@ -275,7 +240,7 @@ int main() {
 		}
 	}
 
-	for (i = height; i < height + 2 * side; i++)   //拓寬圖-下邊
+	for (i = height; i < height + 2 * side; i++)   //Widen - bottom
 	{
 		for (j = side; j < width + side; j++)
 		{
@@ -283,7 +248,7 @@ int main() {
 		}
 	}
 
-	for (i = side; i < height + side; i++)   //拓寬圖-右邊
+	for (i = side; i < height + side; i++)   //Widen - right
 	{
 		for (j = width + side; j < (width + 2 * side); j++)
 		{
@@ -291,7 +256,7 @@ int main() {
 		}
 	}
 
-	for (i = 0; i < side; i++)   //拓寬圖-右邊 右上
+	for (i = 0; i < side; i++)   //Widen - Upper right 
 	{
 		for (j = width + side; j < width + 2 * side; j++)
 		{
@@ -299,14 +264,14 @@ int main() {
 		}
 	}
 
-	for (i = height + side; i < height + 2 * side; i++)   //拓寬圖-右邊 右下
+	for (i = height + side; i < height + 2 * side; i++)   //Widen - Lower right 
 	{
 		for (j = width + side; j < width + 2 * side; j++)
 		{
 			image_change_med2[i][j] = 0;
 		}
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////拓寬完畢
+	//Widen end
 
 	for (i = side; i < height + side; i++)   //TWO-PASS
 	{
@@ -314,14 +279,14 @@ int main() {
 		{
 			if (image_change_med2[i][j] != 0)
 			{
-				if (image_change_med2[i][j] == 255 &&               //搜四鄰
-					determine_0_255(image_change_med2[i - 1][j]) && //上
-					determine_0_255(image_change_med2[i + 1][j]) && //下
-					determine_0_255(image_change_med2[i][j - 1]) && //左
-					determine_0_255(image_change_med2[i][j + 1]))   //右
+				if (image_change_med2[i][j] == 255 &&               //serch the neighbors
+					determine_0_255(image_change_med2[i - 1][j]) && 
+					determine_0_255(image_change_med2[i + 1][j]) && 
+					determine_0_255(image_change_med2[i][j - 1]) && 
+					determine_0_255(image_change_med2[i][j + 1]))   
 				{
 
-					label[label_num] = label_num;        ///label圖
+					label[label_num] = label_num;        ///label the image
 					image_change_med2[i][j] = label_num;
 					if (image_change_med2[i - 1][j] == 255)
 					{
@@ -348,18 +313,18 @@ int main() {
 				}
 				else
 				{
-					int findmini = 14000;   //找最小label
+					int findmini = 14000;   //find the minimize label
 					compare_min(image_change_med2[i][j], findmini);
-					compare_min(image_change_med2[i - 1][j], findmini); //上
-					compare_min(image_change_med2[i + 1][j], findmini); //下
-					compare_min(image_change_med2[i][j - 1], findmini); //左
-					compare_min(image_change_med2[i][j + 1], findmini); //右
+					compare_min(image_change_med2[i - 1][j], findmini);
+					compare_min(image_change_med2[i + 1][j], findmini);
+					compare_min(image_change_med2[i][j - 1], findmini);
+					compare_min(image_change_med2[i][j + 1], findmini); 
 
-					setvalue(image_change_med2[i][j], findmini);  //把最小label傳回去
-					setvalue(image_change_med2[i - 1][j], findmini); //上
-					setvalue(image_change_med2[i + 1][j], findmini); //下
-					setvalue(image_change_med2[i][j - 1], findmini); //左
-					setvalue(image_change_med2[i][j + 1], findmini); //右
+					setvalue(image_change_med2[i][j], findmini);  
+					setvalue(image_change_med2[i - 1][j], findmini); 
+					setvalue(image_change_med2[i + 1][j], findmini); 
+					setvalue(image_change_med2[i][j - 1], findmini); 
+					setvalue(image_change_med2[i][j + 1], findmini); 
 				}
 
 			}
@@ -367,12 +332,12 @@ int main() {
 		}
 	}
 
-	for (size_t i = 1; i <= label_num; i++)//重新調整label的mapping?
+	for (size_t i = 1; i <= label_num; i++)//readjustment the label of mapping table
 	{
 		label[i] = label[label[i]];
 	}
 
-	for (i = 0; i < height; ++i)  //////對圖像像素進行重新給值
+	for (i = 0; i < height; ++i) 
 	{
 		for (j = 0; j < width; ++j)
 		{
@@ -384,7 +349,7 @@ int main() {
 		}
 	}
 
-	for (i = 0; i < height; ++i)  ///////丟進存圖
+	for (i = 0; i < height; ++i)  //saving image
 	{
 		for (j = 0; j < width; ++j)
 		{
@@ -403,13 +368,13 @@ int main() {
 	int buff_w_max = 0;
 	int buff_sum[14000] = { 0 };
 	int scal = 0;
-	for (i = 20; i <= label_num; i += 10)//畫線
+	for (i = 20; i <= label_num; i += 10)//drawing line
 	{
 		buff_h_min = 512;
 		buff_w_min = 512;
 		buff_h_max = 0;
 		buff_w_max = 0;
-		for (int h = 0; h < height; ++h)  //////
+		for (int h = 0; h < height; ++h) 
 		{
 			for (int w = 0; w < width; ++w)
 			{
@@ -427,7 +392,7 @@ int main() {
 		if (buff_sum[i] > 1000) //>1000就框
 		{
 
-			for (int h = buff_h_min; h <= buff_h_max; ++h)  //////畫直線
+			for (int h = buff_h_min; h <= buff_h_max; ++h)  //straight line
 			{
 				if (h == buff_h_min)
 				{
@@ -451,7 +416,7 @@ int main() {
 				}
 			}
 
-			for (int w = buff_w_min; w <= buff_w_max; ++w)  //////畫橫線
+			for (int w = buff_w_min; w <= buff_w_max; ++w)  //horizontal line
 			{
 				if (w == buff_w_min)
 				{
@@ -480,21 +445,11 @@ int main() {
 
 	}
 
-	/*cout << "\n輸入圖片將旋轉+RGB調換~" << endl;
-
-	for (int i = 0; i <  height; ++i)
-	{
-		for (int j = 0; j < width; ++j)
-		{
-				*(image_change + i * width + j) = *(image_ori +j * height + i);
-		}
-	}     */
-
 	printf("程式總花費時間：%dms\n", clock() - time);
 
 	system("pause");
 
-// saving file
+	// saving file
 	cout << "\n請輸入輸出檔案名稱(要打副檔名)：\n" << endl;  
 	cin >> write_file;
 	if (write_file == NULL) {
