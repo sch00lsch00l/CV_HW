@@ -1,3 +1,5 @@
+/*Implement the reference paper "Projective Mappings for Image Warping" */
+
 #define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
 #include <iostream>
